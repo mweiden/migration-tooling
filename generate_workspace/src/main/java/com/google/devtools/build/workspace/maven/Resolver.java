@@ -95,7 +95,7 @@ public class Resolver {
   }
 
   public Resolver(DefaultModelResolver resolver, List<Rule> aliases) {
-    this(resolver, VersionResolver.defaultResolver(), aliases);
+    this(resolver, resolver.getVersionResolver(), aliases);
   }
 
   /**

@@ -23,11 +23,16 @@ import com.google.devtools.build.workspace.maven.Rule;
 import com.google.devtools.build.workspace.output.AbstractWriter;
 import com.google.devtools.build.workspace.output.BzlWriter;
 import com.google.devtools.build.workspace.output.WorkspaceWriter;
+import org.eclipse.aether.repository.RemoteRepository;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -36,7 +41,7 @@ import java.util.logging.Logger;
 public class GenerateWorkspace {
 
   private final static Logger logger = Logger.getLogger(
-      MethodHandles.lookup().lookupClass().getName());
+    MethodHandles.lookup().lookupClass().getName());
 
   private final Resolver resolver;
   private final List<String> inputs;
@@ -59,7 +64,12 @@ public class GenerateWorkspace {
 
     try {
       GenerateWorkspace workspaceFileGenerator = new GenerateWorkspace(
-          args, options.outputDir, options.directToWorkspace, options.aliases);
+        args,
+        options.outputDir,
+        options.directToWorkspace,
+        options.repositories,
+        options.aliases
+      );
       workspaceFileGenerator.generateFromPom(options.mavenProjects, options.scopes);
       workspaceFileGenerator.generateFromArtifacts(options.artifacts);
       workspaceFileGenerator.writeResults();
@@ -69,13 +79,28 @@ public class GenerateWorkspace {
     }
   }
 
-  private GenerateWorkspace(String[] args, String outputDirStr, boolean directToWorkspace, List<Rule> aliases)
-      throws IOException {
-    this.resolver = new Resolver(new DefaultModelResolver(), aliases);
+  private GenerateWorkspace(
+    String[] args,
+    String outputDirStr,
+    boolean directToWorkspace,
+    List<String> repositories,
+    List<Rule> aliases
+  ) throws IOException {
+    List<RemoteRepository> repos = new ArrayList<RemoteRepository>();
+    for (String repo : repositories) {
+      repos.add(new RemoteRepository.Builder("id", "default", repo).build());
+    }
+    DefaultModelResolver defaultModelResolver = new DefaultModelResolver(repos);
+    for (String repo : repositories) {
+      defaultModelResolver.addUserRepository(repo);
+    }
+    this.resolver = new Resolver(
+      defaultModelResolver,
+      aliases);
     this.inputs = Lists.newArrayList();
     this.resultWriter = directToWorkspace
-        ? new WorkspaceWriter(args, outputDirStr)
-        : new BzlWriter(args, outputDirStr);
+      ? new WorkspaceWriter(args, outputDirStr)
+      : new BzlWriter(args, outputDirStr);
   }
 
   private void generateFromPom(List<String> projects, Set<String> scopes) {

@@ -27,12 +27,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.Repository;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.apache.maven.model.building.DefaultModelBuilder;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
 import org.apache.maven.model.building.DefaultModelBuildingRequest;
@@ -69,12 +71,17 @@ public class DefaultModelResolver implements ModelResolver {
   private final VersionResolver versionResolver;
 
   public DefaultModelResolver() {
+    this(new ArrayList<RemoteRepository>());
+  }
+
+  public DefaultModelResolver(List<RemoteRepository> repositories) {
     this(
-        Aether.defaultOption(),
-        Sets.newHashSet(MAVEN_CENTRAL),
-        Maps.newHashMap(),
-        new DefaultModelBuilderFactory().newInstance()
-            .setProfileSelector(new DefaultProfileSelector())
+            new Aether.Builder().remoteRepos(repositories).build(),
+            Sets.newHashSet(DefaultModelResolver.MAVEN_CENTRAL),
+            Maps.newHashMap(),
+            new DefaultModelBuilderFactory()
+                    .newInstance()
+                    .setProfileSelector(new DefaultProfileSelector())
     );
   }
 
@@ -101,7 +108,7 @@ public class DefaultModelResolver implements ModelResolver {
     }
     for (Repository repository : repositories) {
       UrlModelSource modelSource = getModelSource(
-          repository.getUrl(), groupId, artifactId, version);
+              repository.getUrl(), groupId, artifactId, version);
       if (modelSource != null) {
         return modelSource;
       }
@@ -116,8 +123,7 @@ public class DefaultModelResolver implements ModelResolver {
 
   // TODO(kchodorow): make this work with local repositories.
   private UrlModelSource getModelSource(
-      String url, String groupId, String artifactId, String version)
-      throws UnresolvableModelException {
+      String url, String groupId, String artifactId, String version) throws UnresolvableModelException {
     try {
       version = versionResolver.resolveVersion(groupId, artifactId, version);
     } catch (ArtifactBuilder.InvalidArtifactCoordinateException e) {
@@ -185,6 +191,10 @@ public class DefaultModelResolver implements ModelResolver {
   @Override
   public ModelResolver newCopy() {
     return new DefaultModelResolver(aether, repositories, ruleNameToModelSource, modelBuilder);
+  }
+
+  public VersionResolver getVersionResolver() {
+    return this.versionResolver;
   }
 
   /**
