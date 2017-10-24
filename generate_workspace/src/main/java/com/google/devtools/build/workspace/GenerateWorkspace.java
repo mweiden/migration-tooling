@@ -88,7 +88,10 @@ public class GenerateWorkspace {
   ) throws IOException {
     List<RemoteRepository> repos = new ArrayList<RemoteRepository>();
     for (String repo : repositories) {
-      repos.add(new RemoteRepository.Builder("id", "default", repo).build());
+      repos.add(
+        new RemoteRepository.Builder("user defined repository", "default", repo)
+          .build()
+      );
     }
     DefaultModelResolver defaultModelResolver = new DefaultModelResolver(repos);
     for (String repo : repositories) {
