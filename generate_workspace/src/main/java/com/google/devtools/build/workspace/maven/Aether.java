@@ -66,6 +66,10 @@ public class Aether {
     this.remoteRepositories = remoteRepositories;
   }
 
+  public void addRemoteRepository(RemoteRepository repo) {
+    this.remoteRepositories.add(repo);
+  }
+
   public List<RemoteRepository> getRemoteRepositories() {
     return this.remoteRepositories;
   }

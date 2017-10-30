@@ -71,12 +71,8 @@ public class DefaultModelResolver implements ModelResolver {
   private final VersionResolver versionResolver;
 
   public DefaultModelResolver() {
-    this(new ArrayList<RemoteRepository>());
-  }
-
-  public DefaultModelResolver(List<RemoteRepository> repositories) {
     this(
-            new Aether.Builder().remoteRepos(repositories).build(),
+            Aether.defaultOption(),
             Sets.newHashSet(DefaultModelResolver.MAVEN_CENTRAL),
             Maps.newHashMap(),
             new DefaultModelBuilderFactory()
@@ -206,6 +202,10 @@ public class DefaultModelResolver implements ModelResolver {
     repository.setId("user-defined repository");
     repository.setName("default");
     addRepository(repository);
+    this.aether.addRemoteRepository(
+            new RemoteRepository.Builder("user defined repository", "default", url)
+                    .build()
+    );
   }
 
   public boolean putModelSource(String groupId, String artifactId, ModelSource modelSource) {

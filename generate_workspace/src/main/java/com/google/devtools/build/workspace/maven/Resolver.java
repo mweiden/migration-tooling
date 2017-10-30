@@ -142,6 +142,8 @@ public class Resolver {
     }
 
     Rule rule = new Rule(artifact);
+    rule.setRepository(modelSource.getLocation());
+    rule.setSha1(downloadSha1(rule));
     deps.put(rule.name(), rule);  // add the artifact rule to the workspace
     Model model = modelResolver.getEffectiveModel(modelSource);
     if (model != null) {
