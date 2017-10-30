@@ -13,7 +13,7 @@ def _validate_coordinates(rctx):
 
 def _create_arguments(rctx):
     arguments = ['--artifact ' + artifact for artifact in rctx.attr.artifacts]
-    arguments += ['--repositories ' + repository for repository in rctx.attr.repositories]
+    arguments += ['--repository ' + repository for repository in rctx.attr.repositories]
     return ' '.join(arguments)
 
 def _execute(rctx, command_string, quiet):
@@ -27,7 +27,9 @@ def _transitive_maven_jar_impl(rctx):
     jar_path = rctx.path(rctx.attr._generate_workspace_tool)
 
     # execute the command
-    result = _execute(rctx, "java -jar %s %s" % (jar_path, arguments), quiet)
+    command = "java -jar %s %s" % (jar_path, arguments)
+    print(command + "\n")
+    result = _execute(rctx, command, quiet)
     rctx.file('%s/BUILD' % rctx.path(''), '', False)
 
 transitive_maven_jar = repository_rule(
